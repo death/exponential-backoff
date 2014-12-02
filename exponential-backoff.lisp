@@ -84,7 +84,7 @@
        (error (e)
          (inform backoff nil)
          (incf retries)
-         (when (> retries max-retries)
+         (when (and max-retries (> retries max-retries))
            (error e))
          (funcall sleep-function (/ (time-until-release backoff) 1000.0)))))))
 
