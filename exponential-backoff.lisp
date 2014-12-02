@@ -7,7 +7,8 @@
   (:export #:exponential-backoff
            #:inform
            #:reset
-           #:time-until-release))
+           #:time-until-release
+           #:with-exponential-backoff))
 
 (in-package #:exponential-backoff)
 
@@ -70,3 +71,27 @@
 
 (defun time-until-release (backoff)
   (max 0 (- (release-time backoff) (now))))
+
+(defun call-with-exponential-backoff (fn backoff &key (sleep-function #'sleep) max-retries reset)
+  (let ((retries 0))
+    (when reset
+      (reset backoff))
+    (loop
+     (handler-case
+         (return-from call-with-exponential-backoff
+           (multiple-value-prog1 (funcall fn)
+             (inform backoff t)))
+       (error (e)
+         (inform backoff nil)
+         (incf retries)
+         (when (> retries max-retries)
+           (error e))
+         (funcall sleep-function (/ (time-until-release backoff) 1000.0)))))))
+
+(defmacro with-exponential-backoff ((backoff &rest options &key sleep-function max-retries reset) &body forms)
+  (declare (ignore sleep-function max-retries reset))
+  (when (and (consp backoff) (keywordp (car backoff)))
+    (setf backoff `(exponential-backoff ,@backoff)))
+  `(call-with-exponential-backoff (lambda () ,@forms)
+                                  ,backoff
+                                  ,@options))

@@ -7,6 +7,33 @@ Read the [header file](https://github.com/adobe/chromium/blob/master/net/base/ba
 
 # Example
 
+If you like to SLEEP or otherwise block, and don't care to signal
+errors until giving up:
+
+```lisp
+(defun noisy-sleep (seconds)
+  (format t "Sleeping for ~A seconds.~%" seconds)
+  (sleep seconds))
+
+(exponential-backoff:with-exponential-backoff ((:initial-delay-ms 1000 :jitter-factor 0.1)
+                                               :max-retries 3 :sleep-function #'noisy-sleep)
+  (format t "Trying...~%")
+  (error "Something bad happened."))
+
+;; Output:
+;;
+;; Trying...
+;; Sleeping for 0.9575 seconds.
+;; Trying...
+;; Sleeping for 1.8265 seconds.
+;; Trying...
+;; Sleeping for 3.855 seconds.
+;; Trying...
+;; ; Evaluation aborted on #<SIMPLE-ERROR "Something bad happened." {1009EB9E83}>.
+```
+
+A more involved example that uses the backoff information by itself:
+
 ```lisp
 (loop with b = (exponential-backoff:exponential-backoff
                 :num-failures-to-ignore 1
