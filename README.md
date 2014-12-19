@@ -1,4 +1,5 @@
 # Exponential backoff
+![](https://travis-ci.org/death/exponential-backoff.svg)
 
 An implementation of the [exponential backoff](http://en.wikipedia.org/wiki/Exponential_backoff) algorithm in Common Lisp.
 
