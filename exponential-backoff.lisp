@@ -4,6 +4,7 @@
 
 (defpackage #:exponential-backoff
   (:use #:cl)
+  (:import-from #:monotonic-clock #:monotonic-now/ms)
   (:export #:exponential-backoff
            #:inform
            #:reset
@@ -11,9 +12,6 @@
            #:with-exponential-backoff))
 
 (in-package #:exponential-backoff)
-
-(defun now ()
-  (* (/ (get-internal-real-time) internal-time-units-per-second) 1000))
 
 (defun exponential-backoff (&key (num-failures-to-ignore 0)
                                  (initial-delay-ms 0)
@@ -34,7 +32,7 @@
                                    (if always-use-initial-delay
                                        initial-delay-ms
                                        0)))))
-                 (setf release-time (max (+ (now) delay) release-time))
+                 (setf release-time (max (+ (monotonic-now/ms) delay) release-time))
                  (values)))
 
              (reset ()
@@ -70,7 +68,7 @@
   (funcall backoff :release-time))
 
 (defun time-until-release (backoff)
-  (max 0 (- (release-time backoff) (now))))
+  (max 0 (- (release-time backoff) (monotonic-now/ms))))
 
 (defun call-with-exponential-backoff (fn backoff &key (sleep-function #'sleep) max-retries reset)
   (let ((retries 0))

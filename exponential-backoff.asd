@@ -10,6 +10,6 @@
   :description "An implementation of the exponential backoff algorithm"
   :author "death <github.com/death>"
   :license "MIT"
-  :depends-on ()
+  :depends-on (#:monotonic-clock)
   :components
   ((:file "exponential-backoff")))
